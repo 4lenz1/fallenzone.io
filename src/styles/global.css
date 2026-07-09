@@ -339,7 +339,6 @@ body.is-3d .element {
   max-width: 42ch;
 }
 
-#panel-stack,
 .panel-tags {
   list-style: none;
   display: flex;
@@ -357,13 +356,20 @@ body.is-3d .element {
   padding: 0.3rem 0.6rem;
 }
 
-#panel-stack li {
+/* tech-stack "electrons" orbiting the focused tile */
+.electron {
+  display: inline-block;
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  color: var(--text-dim);
-  border: 1px solid var(--border);
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--text);
+  background: rgba(8, 22, 27, 0.9);
+  border: 1px solid var(--accent-soft);
   border-radius: 999px;
-  padding: 0.3rem 0.7rem;
+  padding: 0.4rem 0.9rem;
+  box-shadow: 0 0 18px rgba(64, 214, 224, 0.12);
+  pointer-events: none;
 }
 
 #panel-link {

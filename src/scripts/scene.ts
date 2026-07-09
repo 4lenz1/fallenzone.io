@@ -116,6 +116,7 @@ let currentLayout: LayoutName = 'table';
 
 function transform(layoutTargets: Object3D[], duration: number) {
   TWEEN.removeAll();
+  fadingElectrons.forEach(removeElectron);
   objects.forEach((object, i) => {
     const target = layoutTargets[i];
     new TWEEN.Tween(object.position)
@@ -155,6 +156,94 @@ function tweenCamera(z: number, duration: number) {
 const panel = document.getElementById('panel')!;
 const panelClose = document.getElementById('panel-close')!;
 let focused: number | null = null;
+
+/* tech-stack electrons: each stack item orbits the focused tile on one of
+   two crossing rings, like electron shells around a nucleus */
+interface Electron {
+  object: CSS3DObject;
+  ring: number;
+  phase: number;
+  spin: { progress: number };
+}
+let electrons: Electron[] = [];
+let orbitClock = 0;
+
+const RINGS = [
+  { u: new Vector3(1, 0, 0), v: new Vector3(0, 0.9, 0.44), speed: 0.55 },
+  { u: new Vector3(0, 1, 0), v: new Vector3(0.9, 0, 0.44), speed: -0.4 },
+];
+
+function orbitRadius(ring: number) {
+  const base = innerWidth < 768 ? 220 : 300;
+  return base + ring * (innerWidth < 768 ? 75 : 105);
+}
+
+function spawnElectrons(stack: string[]) {
+  // hard-clean any chips whose exit tween got cancelled by a TWEEN.removeAll()
+  fadingElectrons.forEach(removeElectron);
+  const perRing = [0, 0];
+  stack.forEach((_, i) => perRing[i % 2]++);
+  const seen = [0, 0];
+  electrons = stack.map((label, i) => {
+    const el = document.createElement('span');
+    el.className = 'electron';
+    el.textContent = label;
+    const object = new CSS3DObject(el);
+    const ring = i % 2;
+    const phase = (seen[ring]++ / perRing[ring]) * Math.PI * 2;
+    object.scale.setScalar(0.01);
+    scene.add(object);
+    const spin = { progress: 0 };
+    new TWEEN.Tween(spin)
+      .to({ progress: 1 }, reducedMotion ? 0 : 700)
+      .delay(reducedMotion ? 0 : 450 + i * 70)
+      .easing(TWEEN.Easing.Back.Out)
+      .start();
+    return { object, ring, phase, spin };
+  });
+}
+
+function updateElectrons() {
+  if (focused === null || electrons.length === 0) return;
+  const center = objects[focused].position;
+  if (!reducedMotion) orbitClock += 0.016;
+  for (const e of electrons) {
+    const { u, v, speed } = RINGS[e.ring];
+    const theta = orbitClock * speed + e.phase;
+    const r = orbitRadius(e.ring) * e.spin.progress;
+    e.object.position.set(
+      center.x + (u.x * Math.cos(theta) + v.x * Math.sin(theta)) * r,
+      center.y + (u.y * Math.cos(theta) + v.y * Math.sin(theta)) * r,
+      center.z + (u.z * Math.cos(theta) + v.z * Math.sin(theta)) * r
+    );
+    e.object.scale.setScalar(Math.max(0.01, e.spin.progress * 1.5));
+  }
+}
+
+const fadingElectrons = new Set<CSS3DObject>();
+
+function removeElectron(object: CSS3DObject) {
+  scene.remove(object);
+  object.element.remove();
+  fadingElectrons.delete(object);
+}
+
+/** Suck the chips back into the tile. Call AFTER any TWEEN.removeAll(). */
+function despawnElectrons(center: Vector3) {
+  for (const e of electrons) {
+    fadingElectrons.add(e.object);
+    new TWEEN.Tween(e.object.position)
+      .to({ x: center.x, y: center.y, z: center.z }, reducedMotion ? 0 : 320)
+      .easing(TWEEN.Easing.Quadratic.In)
+      .start();
+    new TWEEN.Tween(e.object.scale)
+      .to({ x: 0.01, y: 0.01, z: 0.01 }, reducedMotion ? 0 : 320)
+      .easing(TWEEN.Easing.Quadratic.In)
+      .onComplete(() => removeElectron(e.object))
+      .start();
+  }
+  electrons = [];
+}
 
 function openProject(index: number) {
   if (focused !== null) return;
@@ -208,6 +297,7 @@ function openProject(index: number) {
     .easing(TWEEN.Easing.Exponential.InOut)
     .start();
 
+  spawnElectrons(projects[index].stack);
   fillPanel(projects[index]);
   window.setTimeout(() => {
     panel.classList.add('is-open');
@@ -218,6 +308,7 @@ function openProject(index: number) {
 function closeProject() {
   if (focused === null) return;
   const selected = objects[focused];
+  const exitCenter = selected.position.clone();
   selected.element.classList.remove('is-focused');
   objects.forEach((object) => object.element.classList.remove('is-dimmed'));
   focused = null;
@@ -236,6 +327,7 @@ function closeProject() {
     .start();
 
   transform(targets[currentLayout], DURATION / 2);
+  despawnElectrons(exitCenter);
   tweenCamera(defaultCameraZ(), DURATION * 0.6);
   window.setTimeout(() => {
     controls.reset();
@@ -256,15 +348,6 @@ function fillPanel(p: Project) {
     ...p.tags.map((t) => {
       const li = document.createElement('li');
       li.textContent = t;
-      return li;
-    })
-  );
-
-  const stack = document.getElementById('panel-stack')!;
-  stack.replaceChildren(
-    ...p.stack.map((s) => {
-      const li = document.createElement('li');
-      li.textContent = s;
       return li;
     })
   );
@@ -333,6 +416,7 @@ function animate() {
   if (focused !== null && !reducedMotion) {
     cloud.rotation.y += 0.0016;
   }
+  updateElectrons();
   renderer.render(scene, camera);
 }
 
