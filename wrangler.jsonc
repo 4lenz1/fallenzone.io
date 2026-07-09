@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fallenzone-io",
+  "compatibility_date": "2026-07-01",
+  "assets": {
+    "directory": "./dist",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+  // To cut fallenzone.io over from Azure Static Web Apps to this Worker,
+  // uncomment the routes block below and deploy:
+  // ,"routes": [{ "pattern": "fallenzone.io", "custom_domain": true }]
+}

@@ -1,0 +1,90 @@
+---
+import '@fontsource-variable/space-grotesk';
+import '@fontsource-variable/jetbrains-mono';
+import '../styles/global.css';
+import { projects } from '../data/projects';
+
+const description =
+  'Fallenzone. Independent web engineer. Twenty shipped projects arranged as a periodic table, from real-estate platforms to tiny integration workers.';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fallenzone</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#0a0e12" />
+    <meta property="og:title" content="Fallenzone" />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://fallenzone.io" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <header class="chrome top">
+      <a class="wordmark" href="/">FALLENZONE</a>
+      <nav class="views" aria-label="Layout">
+        <button class="view-btn is-active" data-layout="table">Table</button>
+        <button class="view-btn" data-layout="sphere">Sphere</button>
+        <button class="view-btn" data-layout="helix">Helix</button>
+        <button class="view-btn" data-layout="grid">Grid</button>
+      </nav>
+      <a class="gh-link" href="https://github.com/4lenz1" rel="me noopener">GitHub</a>
+    </header>
+
+    <main id="stage">
+      <div id="scene" aria-hidden="true"></div>
+
+      <!-- Server-rendered tiles. Without JS this is a plain grid; with JS the
+           scene script adopts each tile into the CSS3D renderer. -->
+      <div id="elements">
+        {
+          projects.map((p) => (
+            <button
+              class="element"
+              data-id={p.id}
+              aria-label={`${p.name}, ${p.category}, ${p.year}`}
+            >
+              <span class="el-number">{String(p.number).padStart(2, '0')}</span>
+              <span class="el-symbol">{p.symbol}</span>
+              <span class="el-name">{p.name}</span>
+              <span class="el-cat">{p.category}</span>
+            </button>
+          ))
+        }
+      </div>
+    </main>
+
+    <aside id="panel" aria-hidden="true">
+      <button id="panel-close" aria-label="Close project details">Close</button>
+      <p class="reveal panel-eyebrow">
+        <span id="panel-number"></span> <span id="panel-symbol"></span>
+      </p>
+      <h2 class="reveal" id="panel-title"></h2>
+      <p class="reveal panel-meta">
+        <span id="panel-category"></span> <span id="panel-year"></span>
+      </p>
+      <p class="reveal" id="panel-blurb"></p>
+      <ul class="reveal" id="panel-stack"></ul>
+      <p class="reveal">
+        <a id="panel-link" href="#" target="_blank" rel="noopener">Visit site</a>
+      </p>
+    </aside>
+
+    <footer class="chrome bottom">
+      <p>Independent web engineer. Twenty projects across Cloudflare and Azure.</p>
+      <p class="hint">Drag to orbit. Click a tile to open a project.</p>
+    </footer>
+
+    <script
+      type="application/json"
+      id="projects-data"
+      set:html={JSON.stringify(projects)}
+    />
+    <script>
+      import '../scripts/scene';
+    </script>
+  </body>
+</html>
