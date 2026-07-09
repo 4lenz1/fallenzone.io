@@ -72,7 +72,12 @@ projects.forEach((p, i) => {
   // table: pseudo periodic layout from data
   const table = new Object3D();
   if (compactTable) {
-    table.position.set((i % 4) * 150 - 225, -Math.floor(i / 4) * 190 + 380, 0);
+    const compactRows = Math.ceil(projects.length / 4);
+    table.position.set(
+      (i % 4) * 150 - 225,
+      -Math.floor(i / 4) * 190 + ((compactRows - 1) * 190) / 2,
+      0
+    );
   } else {
     table.position.set((p.col - 5.5) * 150, -(p.row - 2.5) * 190, 0);
   }
@@ -95,12 +100,12 @@ projects.forEach((p, i) => {
   helix.lookAt(hv);
   targets.helix.push(helix);
 
-  // grid: 5 x 2 x 2
+  // grid: 5 x 3 x 2
   const grid = new Object3D();
   grid.position.set(
     (i % 5) * 380 - 760,
-    -Math.floor((i / 5) % 2) * 420 + 210,
-    Math.floor(i / 10) * 900 - 450
+    -(Math.floor(i / 5) % 3) * 400 + 400,
+    Math.floor(i / 15) * 900 - 450
   );
   targets.grid.push(grid);
 });
@@ -245,6 +250,15 @@ function fillPanel(p: Project) {
   (document.getElementById('panel-category')!).textContent = p.category;
   (document.getElementById('panel-year')!).textContent = p.year;
   (document.getElementById('panel-blurb')!).textContent = p.blurb;
+
+  const tags = document.getElementById('panel-tags')!;
+  tags.replaceChildren(
+    ...p.tags.map((t) => {
+      const li = document.createElement('li');
+      li.textContent = t;
+      return li;
+    })
+  );
 
   const stack = document.getElementById('panel-stack')!;
   stack.replaceChildren(

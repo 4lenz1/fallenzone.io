@@ -5,11 +5,11 @@ import '../styles/global.css';
 import { projects } from '../data/projects';
 
 const description =
-  'Fallenzone. Independent web engineer. Twenty shipped projects arranged as a periodic table, from real-estate platforms to tiny integration workers.';
+  'Fallenzone. 獨立網頁工程師的作品週期表：25 個實際交付的專案，從不動產 ERP、新聞平台遷移、電商配色模擬器，到小型整合 Worker。';
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant-TW">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -45,7 +45,7 @@ const description =
             <button
               class="element"
               data-id={p.id}
-              aria-label={`${p.name}, ${p.category}, ${p.year}`}
+              aria-label={[p.name, p.category, p.year].filter(Boolean).join(', ')}
             >
               <span class="el-number">{String(p.number).padStart(2, '0')}</span>
               <span class="el-symbol">{p.symbol}</span>
@@ -67,6 +67,7 @@ const description =
         <span id="panel-category"></span> <span id="panel-year"></span>
       </p>
       <p class="reveal" id="panel-blurb"></p>
+      <ul class="reveal panel-tags" id="panel-tags"></ul>
       <ul class="reveal" id="panel-stack"></ul>
       <p class="reveal">
         <a id="panel-link" href="#" target="_blank" rel="noopener">Visit site</a>
@@ -74,8 +75,8 @@ const description =
     </aside>
 
     <footer class="chrome bottom">
-      <p>Independent web engineer. Twenty projects across Cloudflare and Azure.</p>
-      <p class="hint">Drag to orbit. Click a tile to open a project.</p>
+      <p>獨立網頁工程師，25 個專案橫跨 Cloudflare、Azure 與 AWS。</p>
+      <p class="hint">拖曳旋轉，點擊元素查看專案細節。</p>
     </footer>
 
     <script

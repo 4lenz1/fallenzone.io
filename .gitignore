@@ -5,3 +5,6 @@ dist/
 .DS_Store
 smoke-*.png
 smoke.mjs
+
+# local research notes contain infra details (VM IPs, subscription ids) - keep out of the public repo
+research/

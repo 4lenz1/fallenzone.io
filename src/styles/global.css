@@ -281,6 +281,7 @@ body.is-3d .element {
 #panel.is-open .reveal:nth-child(5) { transition-delay: 0.42s; }
 #panel.is-open .reveal:nth-child(6) { transition-delay: 0.5s; }
 #panel.is-open .reveal:nth-child(7) { transition-delay: 0.58s; }
+#panel.is-open .reveal:nth-child(8) { transition-delay: 0.66s; }
 
 #panel-close {
   position: absolute;
@@ -338,11 +339,22 @@ body.is-3d .element {
   max-width: 42ch;
 }
 
-#panel-stack {
+#panel-stack,
+.panel-tags {
   list-style: none;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.panel-tags li {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: rgba(64, 214, 224, 0.08);
+  border-radius: 2px;
+  padding: 0.3rem 0.6rem;
 }
 
 #panel-stack li {
