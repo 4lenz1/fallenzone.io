@@ -420,12 +420,18 @@ body.is-3d .element {
   #panel {
     top: auto;
     width: 100vw;
-    max-height: 72dvh;
-    padding: 3.5rem 1.5rem 1.5rem;
+    /* keep the focused tile and its orbit visible above the sheet */
+    max-height: 52dvh;
+    padding: 3rem 1.5rem 1.5rem;
+    gap: 0.875rem;
     border-right: none;
     border-top: 1px solid var(--border);
     transform: translateY(100%);
     overflow-y: auto;
+  }
+
+  #panel-title {
+    font-size: 1.625rem;
   }
 
   #panel.is-open {

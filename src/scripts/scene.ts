@@ -245,9 +245,12 @@ function despawnElectrons(center: Vector3) {
   electrons = [];
 }
 
+let closeTimer: number | undefined;
+
 function openProject(index: number) {
   if (focused !== null) return;
   focused = index;
+  window.clearTimeout(closeTimer);
   controls.enabled = false;
   TWEEN.removeAll();
   tweenCamera(defaultCameraZ(), DURATION * 0.6);
@@ -282,7 +285,7 @@ function openProject(index: number) {
 
   // fly the chosen tile in front of the camera
   const front = isMobile
-    ? { x: 0, y: 380, z: defaultCameraZ() - 2400 }
+    ? { x: 0, y: 350, z: defaultCameraZ() - 2400 }
     : { x: 280, y: 0, z: 900 };
   new TWEEN.Tween(selected.position)
     .to(front, DURATION * 0.75)
@@ -329,10 +332,12 @@ function closeProject() {
   transform(targets[currentLayout], DURATION / 2);
   despawnElectrons(exitCenter);
   tweenCamera(defaultCameraZ(), DURATION * 0.6);
-  window.setTimeout(() => {
+  // transform() staggers tiles up to a full DURATION; only accept input again
+  // once every tile has settled, so taps cannot hit a tile mid-flight
+  closeTimer = window.setTimeout(() => {
     controls.reset();
     controls.enabled = true;
-  }, reducedMotion ? 0 : DURATION * 0.6);
+  }, reducedMotion ? 0 : DURATION);
 }
 
 function fillPanel(p: Project) {
@@ -374,13 +379,16 @@ tiles.forEach((tile, i) => {
   });
   // keyboard activation still arrives as a plain click
   tile.addEventListener('click', (e) => {
-    if (e.detail === 0) openProject(i);
+    if (e.detail === 0 && controls.enabled) openProject(i);
   });
 });
 document.addEventListener('pointerup', (e) => {
   if (!pressed) return;
   const { index, x, y } = pressed;
   pressed = null;
+  // while a focus/close animation runs (controls disabled), mid-flight tiles
+  // can intercept taps meant for their neighbours; ignore clicks until settled
+  if (!controls.enabled) return;
   if (Math.hypot(e.clientX - x, e.clientY - y) < 8) openProject(index);
 });
 panelClose.addEventListener('click', closeProject);
