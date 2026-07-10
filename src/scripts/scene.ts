@@ -235,20 +235,48 @@ function spawnElectrons(stack: string[]) {
   });
 }
 
+const ELECTRON_SCALE = 1.5;
+
 function updateElectrons() {
   if (focused === null || electrons.length === 0) return;
   const center = objects[focused].position;
   if (!reducedMotion) orbitClock += 0.016;
+
+  // squash each orbit into an ellipse that fits the visible area, so chips
+  // never swing off-screen or slide behind the left panel / top nav
+  const perspective = innerHeight * 1.3737; // 0.5 * h / tan(fov/2), fov 40
+  const dist = Math.max(200, camera.position.z - center.z);
+  const halfW = (innerWidth / 2) * (dist / perspective);
+  const halfH = (innerHeight / 2) * (dist / perspective);
+  const panelPx = innerWidth < 768 ? 0 : Math.min(440, innerWidth);
+  const panelEdge = -halfW + (panelPx / innerWidth) * 2 * halfW;
+  const navWorld = (72 / innerHeight) * 2 * halfH;
+
   for (const e of electrons) {
     const { u, v, speed } = RINGS[e.ring];
     const theta = orbitClock * speed + e.phase;
     const r = orbitRadius(e.ring) * e.spin.progress;
-    e.object.position.set(
-      center.x + (u.x * Math.cos(theta) + v.x * Math.sin(theta)) * r,
-      center.y + (u.y * Math.cos(theta) + v.y * Math.sin(theta)) * r,
-      center.z + (u.z * Math.cos(theta) + v.z * Math.sin(theta)) * r
+    const rBase = orbitRadius(e.ring);
+    const chipHalfW = ((e.object.element.offsetWidth || 220) / 2) * ELECTRON_SCALE + 45;
+    const chipHalfH = 26 * ELECTRON_SCALE;
+    const availX = Math.min(
+      halfW - center.x - chipHalfW,
+      center.x - panelEdge - chipHalfW
     );
-    e.object.scale.setScalar(Math.max(0.01, e.spin.progress * 1.5));
+    const availY = halfH - navWorld - Math.abs(center.y) - chipHalfH;
+    const kx = Math.max(0.35, Math.min(1, availX / rBase));
+    const ky = Math.max(0.5, Math.min(1, availY / rBase));
+
+    // keep the whole orbit IN FRONT of the tile (shallow z sway + forward
+    // bias) so a chip is never occluded and every tech stays readable
+    e.object.position.set(
+      center.x + (u.x * Math.cos(theta) + v.x * Math.sin(theta)) * r * kx,
+      center.y + (u.y * Math.cos(theta) + v.y * Math.sin(theta)) * r * ky,
+      center.z +
+        (u.z * Math.cos(theta) + v.z * Math.sin(theta)) * r * 0.3 +
+        80 * e.spin.progress
+    );
+    e.object.scale.setScalar(Math.max(0.01, e.spin.progress * ELECTRON_SCALE));
   }
 }
 
