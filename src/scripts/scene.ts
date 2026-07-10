@@ -178,16 +178,48 @@ function orbitRadius(ring: number) {
   return base + ring * (innerWidth < 768 ? 75 : 105);
 }
 
+/* one colour per chip: hashed from the label so the same tech keeps its
+   colour across projects, with collision bumping so no two chips in the
+   same orbit share a colour */
+const ELECTRON_COLORS = [
+  '#40d6e0', // cyan
+  '#4ade80', // mint
+  '#fbbf24', // amber
+  '#fb7185', // rose
+  '#a78bfa', // violet
+  '#60a5fa', // blue
+  '#fb923c', // orange
+  '#a3e635', // lime
+  '#f472b6', // pink
+  '#2dd4bf', // teal
+];
+
+function electronColor(label: string, used: Set<number>): string {
+  let h = 0;
+  for (const ch of label) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  let idx = h % ELECTRON_COLORS.length;
+  if (used.size < ELECTRON_COLORS.length) {
+    while (used.has(idx)) idx = (idx + 1) % ELECTRON_COLORS.length;
+  }
+  used.add(idx);
+  return ELECTRON_COLORS[idx];
+}
+
 function spawnElectrons(stack: string[]) {
   // hard-clean any chips whose exit tween got cancelled by a TWEEN.removeAll()
   fadingElectrons.forEach(removeElectron);
   const perRing = [0, 0];
   stack.forEach((_, i) => perRing[i % 2]++);
   const seen = [0, 0];
+  const usedColors = new Set<number>();
   electrons = stack.map((label, i) => {
     const el = document.createElement('span');
     el.className = 'electron';
     el.textContent = label;
+    const color = electronColor(label, usedColors);
+    el.style.color = color;
+    el.style.borderColor = `${color}8c`;
+    el.style.boxShadow = `0 0 18px ${color}2e`;
     const object = new CSS3DObject(el);
     const ring = i % 2;
     const phase = (seen[ring]++ / perRing[ring]) * Math.PI * 2;
